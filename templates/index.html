@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dream Decoder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 to-black text-white min-h-screen flex flex-col items-center justify-center px-6">
+
+  <div class="max-w-2xl w-full bg-white/10 p-8 rounded-2xl shadow-xl backdrop-blur-lg">
+    <h1 class="text-4xl font-bold mb-6 text-center text-indigo-300">💭 Dream Decoder</h1>
+
+    <textarea id="dreamInput" rows="4" placeholder="Type your dream here..." class="w-full p-4 rounded-xl text-black focus:outline-none"></textarea>
+    
+    <button onclick="decodeDream()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg transition">Decode 🔍</button>
+
+    <div id="result" class="mt-6 space-y-4"></div>
+  </div>
+
+  <script>
+    async function decodeDream() {
+      const dreamText = document.getElementById("dreamInput").value;
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "<p class='text-indigo-300'>Decoding...</p>";
+
+      const res = await fetch("/decode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dream: dreamText })
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        resultDiv.innerHTML = `<p class="text-red-400">${data.error}</p>`;
+        return;
+      }
+
+      resultDiv.innerHTML = data.interpretations.map((i, idx) => `
+        <div class="p-4 bg-white/20 rounded-xl shadow-md">
+          <h3 class="text-lg font-bold text-indigo-200">#${idx + 1}: ${i.symbol}</h3>
+          <p class="text-sm text-gray-200 mt-2">${i.interpretation}</p>
+          <p class="text-xs text-gray-400 mt-1">Similarity Score: ${i.similarity.toFixed(3)}</p>
+        </div>
+      `).join("");
+    }
+  </script>
+</body>
+</html>
